@@ -1,7 +1,7 @@
 {
-    "name": "GuitarMaster - Interactive Guitar Lessons",
-    "short_name": "GuitarMaster",
-    "description": "Learn guitar from beginner to expert with interactive lessons, 3D visualizations, and progress tracking",
+    "name": "LearnMusicalInstruments",
+    "short_name": "LearnMusic",
+    "description": "Learn Piano, Guitar, Violin, or Drums with interactive 3D lessons",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#0f0f1a",
@@ -9,7 +9,7 @@
     "orientation": "portrait-primary",
     "icons": [
         {
-            "src": "/guitar-icon.svg",
+            "src": "/music-icon.svg",
             "sizes": "any",
             "type": "image/svg+xml",
             "purpose": "any"

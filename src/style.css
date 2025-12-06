@@ -1188,6 +1188,386 @@ body {
   background: rgba(168, 85, 247, 0.2);
 }
 
+/* ============ EXERCISE COMPONENTS ============ */
+
+.exercise-card {
+  border: 2px solid var(--color-teal-500);
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(20, 184, 166, 0.05) 100%);
+}
+
+.exercise-header {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+  margin-bottom: calc(var(--spacing) * 4);
+}
+
+.exercise-header svg {
+  width: 24px;
+  height: 24px;
+  color: var(--color-teal-400);
+}
+
+.exercise-header h2 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  flex: 1;
+}
+
+.exercise-type-badge {
+  padding: calc(var(--spacing) * 1) calc(var(--spacing) * 3);
+  background: var(--color-teal-500);
+  color: white;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.exercise-instructions {
+  color: var(--text-white-60);
+  margin-bottom: calc(var(--spacing) * 6);
+  font-size: 1rem;
+}
+
+/* Sequence Display */
+.sequence-display {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: calc(var(--spacing) * 6);
+}
+
+.sequence-item {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  background: var(--text-white-10);
+  border: 2px solid var(--text-white-30);
+  transition: all 0.2s ease;
+}
+
+.sequence-item.active {
+  border-color: var(--color-cyan-400);
+  background: rgba(6, 182, 212, 0.2);
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+}
+
+.sequence-item.correct {
+  border-color: var(--color-emerald-400);
+  background: rgba(52, 211, 153, 0.3);
+}
+
+.sequence-item.wrong {
+  border-color: var(--color-rose-400);
+  background: rgba(251, 113, 133, 0.3);
+  animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+.sequence-note {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+/* Exercise Input Area */
+.exercise-input-area {
+  margin-bottom: calc(var(--spacing) * 6);
+}
+
+.exercise-keys,
+.exercise-chords,
+.exercise-drums,
+.exercise-strings {
+  opacity: 0.5;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.exercise-card:has(.sequence-item.active) .exercise-keys,
+.exercise-card:has(.sequence-item.active) .exercise-chords,
+.exercise-card:has(.sequence-item.active) .exercise-drums,
+.exercise-card:has(.sequence-item.active) .exercise-strings,
+.exercise-card:has(.beat-slot.current) .exercise-keys,
+.exercise-card:has(.beat-slot.current) .exercise-chords,
+.exercise-card:has(.beat-slot.current) .exercise-drums,
+.exercise-card:has(.beat-slot.current) .exercise-strings {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Beat Display */
+.beat-display {
+  margin-bottom: calc(var(--spacing) * 6);
+}
+
+.metronome-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--spacing) * 4);
+  margin-bottom: calc(var(--spacing) * 4);
+}
+
+.beat-indicator {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--text-white-10);
+  border: 3px solid var(--color-teal-400);
+  transition: all 0.1s ease;
+}
+
+.beat-indicator.pulse {
+  background: var(--color-teal-400);
+  transform: scale(1.2);
+  box-shadow: 0 0 30px var(--color-teal-400);
+}
+
+.bpm-display {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-teal-400);
+}
+
+.beat-grid {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.beat-slot {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  background: var(--text-white-10);
+  border: 2px solid transparent;
+  font-weight: 500;
+  transition: all 0.1s ease;
+}
+
+.beat-slot.target {
+  border-color: var(--color-orange-500);
+  background: rgba(249, 115, 22, 0.2);
+}
+
+.beat-slot.current {
+  background: var(--color-cyan-400);
+  color: #000;
+  transform: scale(1.1);
+}
+
+/* Song Display */
+.song-display {
+  margin-bottom: calc(var(--spacing) * 6);
+}
+
+.song-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: calc(var(--spacing) * 4);
+}
+
+.song-name {
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.song-bpm {
+  color: var(--text-white-60);
+}
+
+.note-track {
+  position: relative;
+  height: 60px;
+  background: var(--text-white-10);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.track-notes {
+  position: absolute;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.track-note {
+  position: absolute;
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+  background: var(--color-violet-400);
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.track-note.active {
+  background: var(--color-cyan-400);
+  transform: scale(1.2);
+}
+
+.track-note.passed {
+  opacity: 0.3;
+}
+
+.playhead {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: var(--color-rose-400);
+  box-shadow: 0 0 10px var(--color-rose-400);
+}
+
+/* Score Display */
+.exercise-score {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--spacing) * 4);
+  background: var(--text-white-10);
+  border-radius: 1rem;
+  margin-bottom: calc(var(--spacing) * 4);
+}
+
+.score-display {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 2);
+}
+
+.score-label {
+  color: var(--text-white-60);
+}
+
+.score-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-emerald-400);
+}
+
+.score-divider {
+  color: var(--text-white-30);
+}
+
+.score-total {
+  font-size: 1.25rem;
+  color: var(--text-white-60);
+}
+
+.score-percentage {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-cyan-400);
+}
+
+/* Exercise Controls */
+.exercise-controls {
+  display: flex;
+  gap: calc(var(--spacing) * 3);
+  justify-content: center;
+  margin-bottom: calc(var(--spacing) * 4);
+}
+
+.exercise-btn {
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 6);
+  border-radius: 0.75rem;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+}
+
+.start-btn {
+  background: linear-gradient(to right, var(--color-teal-500), var(--color-emerald-400));
+  color: white;
+}
+
+.start-btn:hover:not(:disabled) {
+  transform: scale(1.02);
+  box-shadow: 0 10px 30px rgba(20, 184, 166, 0.4);
+}
+
+.start-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.reset-btn {
+  background: var(--text-white-10);
+  color: var(--text-white-60);
+}
+
+.reset-btn:hover {
+  color: var(--text-white);
+  background: var(--text-white-10);
+}
+
+/* Feedback */
+.exercise-feedback {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.exercise-feedback.show {
+  opacity: 1;
+}
+
+.exercise-feedback.success {
+  color: var(--color-emerald-400);
+}
+
+.exercise-feedback.error {
+  color: var(--color-rose-400);
+}
+
+.finish-message {
+  padding: calc(var(--spacing) * 4);
+  border-radius: 1rem;
+  text-align: center;
+}
+
+.finish-message.success {
+  background: rgba(52, 211, 153, 0.2);
+  color: var(--color-emerald-400);
+}
+
+.finish-message.fail {
+  background: rgba(251, 113, 133, 0.2);
+  color: var(--color-rose-400);
+}
+
 /* ============ UTILITY CLASSES ============ */
 .text-center {
   text-align: center;

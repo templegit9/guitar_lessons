@@ -1,6 +1,6 @@
 import './style.css';
 import * as THREE from 'three';
-import { lessons, instruments, levelMeta, chordData } from './data/lessons.js';
+import { lessons, instruments, levelMeta, chordData, songs } from './data/lessons.js';
 
 // SVG Icons (inline to match Figma design)
 const icons = {
@@ -143,7 +143,20 @@ const state = {
   timerSeconds: 0,
   timerRunning: false,
   highlightedKeys: [],
-  highlightedDrums: []
+  highlightedDrums: [],
+  // Exercise state
+  exercise: {
+    active: false,
+    type: null,         // 'sequence', 'beat', 'song'
+    sequence: [],
+    currentIndex: 0,
+    score: { correct: 0, wrong: 0 },
+    passed: false,
+    beatInterval: null,
+    currentBeat: 0,
+    expectedInput: null,
+    tolerance: 250       // ms tolerance for beat timing
+  }
 };
 
 function saveProgress() {
@@ -388,6 +401,9 @@ function renderLessonDetail() {
               </div>
             ` : ''}
             
+            <!-- Practice Exercise -->
+            ${lesson.exercise ? renderExerciseSection(lesson) : ''}
+            
             <!-- Complete Button -->
             ${isCompleted ? `
               <div class="completed-message">
@@ -498,6 +514,137 @@ function getInteractiveElements(lesson) {
   return '';
 }
 
+// ============ EXERCISE SECTION ============
+function renderExerciseSection(lesson) {
+  const ex = lesson.exercise;
+  const exerciseCompleted = state.exercise.passed;
+
+  return `
+    <div class="content-card exercise-card">
+      <div class="exercise-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+        <h2>Practice Exercise</h2>
+        <span class="exercise-type-badge">${ex.type.charAt(0).toUpperCase() + ex.type.slice(1)}</span>
+      </div>
+      
+      <p class="exercise-instructions">${ex.instructions}</p>
+      
+      ${ex.type === 'sequence' ? renderSequenceExercise(lesson) : ''}
+      ${ex.type === 'beat' ? renderBeatExercise(lesson) : ''}
+      ${ex.type === 'song' ? renderSongExercise(lesson) : ''}
+      
+      <div class="exercise-score" id="exercise-score">
+        <div class="score-display">
+          <span class="score-label">Score:</span>
+          <span class="score-value" id="score-correct">0</span>
+          <span class="score-divider">/</span>
+          <span class="score-total" id="score-total">${ex.sequence?.length || 8}</span>
+        </div>
+        <div class="score-percentage" id="score-percentage">0%</div>
+      </div>
+      
+      <div class="exercise-controls">
+        <button class="exercise-btn start-btn" id="start-exercise">▶ Start Exercise</button>
+        <button class="exercise-btn reset-btn" id="reset-exercise">↺ Reset</button>
+      </div>
+      
+      <div class="exercise-feedback" id="exercise-feedback"></div>
+    </div>
+  `;
+}
+
+function renderSequenceExercise(lesson) {
+  const ex = lesson.exercise;
+  const inst = state.currentInstrument;
+
+  return `
+    <div class="sequence-display" id="sequence-display">
+      ${ex.sequence.map((item, i) => `
+        <div class="sequence-item" data-index="${i}">
+          <span class="sequence-note">${item}</span>
+        </div>
+      `).join('')}
+    </div>
+    
+    <div class="exercise-input-area" id="exercise-input">
+      ${inst === 'piano' ? `
+        <div class="piano-keys exercise-keys" id="exercise-piano">
+          ${['C', 'D', 'E', 'F', 'G', 'A', 'B'].map(note => `
+            <button class="piano-key" data-note="${note}">${note}</button>
+          `).join('')}
+        </div>
+      ` : ''}
+      ${inst === 'guitar' ? `
+        <div class="chord-buttons exercise-chords" id="exercise-chords">
+          ${[...new Set(ex.sequence)].map(chord => `
+            <button class="chord-btn" data-chord="${chord}">${chord}</button>
+          `).join('')}
+        </div>
+      ` : ''}
+      ${inst === 'drums' ? `
+        <div class="drum-pads exercise-drums" id="exercise-drums">
+          ${[...new Set(ex.sequence)].map(drum => `
+            <button class="drum-pad" data-drum="${drum}">${drum.charAt(0).toUpperCase() + drum.slice(1)}</button>
+          `).join('')}
+        </div>
+      ` : ''}
+      ${inst === 'violin' ? `
+        <div class="string-buttons exercise-strings" id="exercise-strings">
+          ${['G', 'D', 'A', 'E'].map(str => `
+            <button class="string-btn" data-string="${str}">${str}</button>
+          `).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function renderBeatExercise(lesson) {
+  const ex = lesson.exercise;
+
+  return `
+    <div class="beat-display" id="beat-display">
+      <div class="metronome-visual">
+        <div class="beat-indicator" id="beat-indicator"></div>
+        <div class="bpm-display">${ex.bpm} BPM</div>
+      </div>
+      <div class="beat-grid" id="beat-grid">
+        ${Array.from({ length: ex.measures * 4 }, (_, i) => `
+          <div class="beat-slot ${ex.pattern.includes((i % 4) + 1) ? 'target' : ''}" data-beat="${i + 1}">
+            ${(i % 4) + 1}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderSongExercise(lesson) {
+  const ex = lesson.exercise;
+  const song = songs[ex.songId];
+
+  if (!song) return '<p>Song not found</p>';
+
+  return `
+    <div class="song-display" id="song-display">
+      <div class="song-info">
+        <span class="song-name">🎵 ${song.name}</span>
+        <span class="song-bpm">${song.bpm} BPM</span>
+      </div>
+      <div class="note-track" id="note-track">
+        <div class="track-notes" id="track-notes">
+          ${(song.notes || song.chords || song.pattern || []).map((item, i) => `
+            <div class="track-note" data-index="${i}" style="left: ${(item.beat - 1) * 60}px">
+              ${item.note || item.chord || item.drum || item.string}
+            </div>
+          `).join('')}
+        </div>
+        <div class="playhead" id="playhead"></div>
+      </div>
+    </div>
+  `;
+}
+
 // ============ INITIALIZATION ============
 function initInstrumentSelect() {
   Object.keys(instruments).forEach(id => init3DPreview(id));
@@ -548,6 +695,297 @@ function initLessonPage() {
   initTimer();
   init3DModel();
   initInteractiveElements();
+  initExercise();
+}
+
+// ============ EXERCISE LOGIC ============
+function initExercise() {
+  const lesson = state.currentLesson;
+  if (!lesson?.exercise) return;
+
+  const ex = lesson.exercise;
+
+  // Reset exercise state
+  state.exercise = {
+    active: false,
+    type: ex.type,
+    sequence: ex.sequence || [],
+    currentIndex: 0,
+    score: { correct: 0, wrong: 0 },
+    passed: false,
+    beatInterval: null,
+    currentBeat: 0,
+    expectedInput: null,
+    tolerance: 250
+  };
+
+  // Start button
+  document.getElementById('start-exercise')?.addEventListener('click', startExercise);
+
+  // Reset button
+  document.getElementById('reset-exercise')?.addEventListener('click', resetExercise);
+}
+
+function startExercise() {
+  const lesson = state.currentLesson;
+  const ex = lesson.exercise;
+
+  state.exercise.active = true;
+  state.exercise.currentIndex = 0;
+  state.exercise.score = { correct: 0, wrong: 0 };
+
+  const startBtn = document.getElementById('start-exercise');
+  if (startBtn) {
+    startBtn.textContent = '⏸ Running...';
+    startBtn.disabled = true;
+  }
+
+  // Update UI to show active state
+  document.querySelectorAll('.sequence-item').forEach(el => el.classList.remove('active', 'correct', 'wrong'));
+  document.getElementById('exercise-feedback')?.classList.remove('show', 'success', 'error');
+
+  if (ex.type === 'sequence') {
+    highlightCurrentSequenceItem();
+    bindExerciseInputs();
+  } else if (ex.type === 'beat') {
+    startBeatExercise();
+  } else if (ex.type === 'song') {
+    startSongExercise();
+  }
+}
+
+function resetExercise() {
+  state.exercise.active = false;
+  state.exercise.currentIndex = 0;
+  state.exercise.score = { correct: 0, wrong: 0 };
+  clearInterval(state.exercise.beatInterval);
+
+  const startBtn = document.getElementById('start-exercise');
+  if (startBtn) {
+    startBtn.textContent = '▶ Start Exercise';
+    startBtn.disabled = false;
+  }
+
+  document.querySelectorAll('.sequence-item').forEach(el => el.classList.remove('active', 'correct', 'wrong'));
+  document.getElementById('exercise-feedback')?.classList.remove('show', 'success', 'error');
+  updateScore();
+}
+
+function highlightCurrentSequenceItem() {
+  document.querySelectorAll('.sequence-item').forEach((el, i) => {
+    el.classList.toggle('active', i === state.exercise.currentIndex);
+  });
+}
+
+function bindExerciseInputs() {
+  const inst = state.currentInstrument;
+
+  // Remove old listeners by cloning
+  const replaceElement = (selector) => {
+    document.querySelectorAll(selector).forEach(el => {
+      const clone = el.cloneNode(true);
+      el.parentNode.replaceChild(clone, el);
+    });
+  };
+
+  if (inst === 'piano') {
+    replaceElement('#exercise-piano .piano-key');
+    document.querySelectorAll('#exercise-piano .piano-key').forEach(key => {
+      key.addEventListener('click', () => handleExerciseInput(key.dataset.note, 'note'));
+    });
+  } else if (inst === 'guitar') {
+    replaceElement('#exercise-chords .chord-btn');
+    document.querySelectorAll('#exercise-chords .chord-btn').forEach(btn => {
+      btn.addEventListener('click', () => handleExerciseInput(btn.dataset.chord, 'chord'));
+    });
+  } else if (inst === 'drums') {
+    replaceElement('#exercise-drums .drum-pad');
+    document.querySelectorAll('#exercise-drums .drum-pad').forEach(pad => {
+      pad.addEventListener('click', () => handleExerciseInput(pad.dataset.drum, 'drum'));
+    });
+  } else if (inst === 'violin') {
+    replaceElement('#exercise-strings .string-btn');
+    document.querySelectorAll('#exercise-strings .string-btn').forEach(btn => {
+      btn.addEventListener('click', () => handleExerciseInput(btn.dataset.string, 'string'));
+    });
+  }
+}
+
+function handleExerciseInput(input, type) {
+  if (!state.exercise.active) return;
+
+  const expected = state.exercise.sequence[state.exercise.currentIndex];
+  const isCorrect = input === expected;
+
+  // Play sound
+  if (type === 'note') playNote(input);
+  else if (type === 'chord') playChord(getChordNotes(input));
+  else if (type === 'drum') playDrumSound(input);
+  else if (type === 'string') {
+    const freq = { 'G': 196, 'D': 293.66, 'A': 440, 'E': 659.25 };
+    const ctx = getAudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.value = freq[input];
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.5);
+  }
+
+  // Update sequence item
+  const currentItem = document.querySelector(`.sequence-item[data-index="${state.exercise.currentIndex}"]`);
+  if (currentItem) {
+    currentItem.classList.remove('active');
+    currentItem.classList.add(isCorrect ? 'correct' : 'wrong');
+  }
+
+  // Show feedback
+  showFeedback(isCorrect);
+
+  // Update score
+  if (isCorrect) state.exercise.score.correct++;
+  else state.exercise.score.wrong++;
+
+  updateScore();
+
+  // Move to next
+  state.exercise.currentIndex++;
+
+  if (state.exercise.currentIndex >= state.exercise.sequence.length) {
+    finishExercise();
+  } else {
+    highlightCurrentSequenceItem();
+  }
+}
+
+function showFeedback(isCorrect) {
+  const feedback = document.getElementById('exercise-feedback');
+  if (feedback) {
+    feedback.textContent = isCorrect ? '✓ Correct!' : '✗ Try again';
+    feedback.className = `exercise-feedback show ${isCorrect ? 'success' : 'error'}`;
+    setTimeout(() => feedback.classList.remove('show'), 500);
+  }
+}
+
+function updateScore() {
+  const { correct, wrong } = state.exercise.score;
+  const total = state.exercise.sequence.length || 1;
+  const percentage = Math.round((correct / total) * 100);
+
+  document.getElementById('score-correct').textContent = correct;
+  document.getElementById('score-total').textContent = total;
+  document.getElementById('score-percentage').textContent = `${percentage}%`;
+}
+
+function finishExercise() {
+  state.exercise.active = false;
+
+  const ex = state.currentLesson.exercise;
+  const { correct } = state.exercise.score;
+  const total = state.exercise.sequence.length;
+  const percentage = correct / total;
+  const passed = percentage >= (ex.passThreshold || 0.8);
+
+  state.exercise.passed = passed;
+
+  const feedback = document.getElementById('exercise-feedback');
+  if (feedback) {
+    if (passed) {
+      feedback.innerHTML = `<div class="finish-message success">🎉 Excellent! You passed with ${Math.round(percentage * 100)}%!</div>`;
+    } else {
+      feedback.innerHTML = `<div class="finish-message fail">Keep practicing! Score: ${Math.round(percentage * 100)}% (need ${Math.round(ex.passThreshold * 100)}%)</div>`;
+    }
+    feedback.classList.add('show');
+  }
+
+  const startBtn = document.getElementById('start-exercise');
+  if (startBtn) {
+    startBtn.textContent = '↺ Try Again';
+    startBtn.disabled = false;
+  }
+}
+
+function startBeatExercise() {
+  const ex = state.currentLesson.exercise;
+  const beatDuration = 60000 / ex.bpm;
+  const totalBeats = ex.measures * 4;
+  let beatCount = 0;
+
+  state.exercise.sequence = ex.drums || ex.notes || ex.chords || ex.strings || [];
+
+  const indicator = document.getElementById('beat-indicator');
+  const beatSlots = document.querySelectorAll('.beat-slot');
+
+  // Bind input for beat mode
+  bindExerciseInputs();
+
+  state.exercise.beatInterval = setInterval(() => {
+    beatCount++;
+    state.exercise.currentBeat = beatCount;
+
+    // Visual pulse
+    if (indicator) {
+      indicator.classList.add('pulse');
+      setTimeout(() => indicator.classList.remove('pulse'), 100);
+    }
+
+    // Highlight current beat
+    beatSlots.forEach((slot, i) => {
+      slot.classList.toggle('current', i === beatCount - 1);
+    });
+
+    if (beatCount >= totalBeats) {
+      clearInterval(state.exercise.beatInterval);
+      finishExercise();
+    }
+  }, beatDuration);
+}
+
+function startSongExercise() {
+  const ex = state.currentLesson.exercise;
+  const song = songs[ex.songId];
+  if (!song) return;
+
+  const beatDuration = 60000 / song.bpm;
+  const notes = song.notes || song.chords || song.pattern || [];
+
+  state.exercise.sequence = notes.map(n => n.note || n.chord || n.drum || n.string);
+
+  bindExerciseInputs();
+
+  const playhead = document.getElementById('playhead');
+  const trackNotes = document.querySelectorAll('.track-note');
+  let startTime = Date.now();
+
+  const animate = () => {
+    const elapsed = Date.now() - startTime;
+    const beatPosition = (elapsed / beatDuration) * 60;
+
+    if (playhead) {
+      playhead.style.left = `${beatPosition}px`;
+    }
+
+    // Check for notes to highlight
+    trackNotes.forEach((note, i) => {
+      const noteBeat = notes[i].beat;
+      const notePosition = (noteBeat - 1) * 60;
+      if (Math.abs(beatPosition - notePosition) < 30 && !note.classList.contains('passed')) {
+        note.classList.add('active');
+      }
+    });
+
+    if (elapsed < notes[notes.length - 1].beat * beatDuration + 2000) {
+      requestAnimationFrame(animate);
+    } else {
+      finishExercise();
+    }
+  };
+
+  requestAnimationFrame(animate);
 }
 
 function initInteractiveElements() {

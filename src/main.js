@@ -15,8 +15,122 @@ const icons = {
   chevronRight: `<svg class="lesson-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`,
   target: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,
   timer: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
-  check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+  check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  lightbulb: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>`,
+  book: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>`,
+  volume: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`
 };
+
+// Audio context for instrument sounds
+let audioContext = null;
+
+function getAudioContext() {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return audioContext;
+}
+
+// Note frequencies for piano
+const noteFrequencies = {
+  'C': 261.63, 'C#': 277.18, 'Db': 277.18,
+  'D': 293.66, 'D#': 311.13, 'Eb': 311.13,
+  'E': 329.63,
+  'F': 349.23, 'F#': 369.99, 'Gb': 369.99,
+  'G': 392.00, 'G#': 415.30, 'Ab': 415.30,
+  'A': 440.00, 'A#': 466.16, 'Bb': 466.16,
+  'B': 493.88
+};
+
+function playNote(note, duration = 0.5) {
+  const ctx = getAudioContext();
+  const freq = noteFrequencies[note];
+  if (!freq) return;
+
+  const oscillator = ctx.createOscillator();
+  const gainNode = ctx.createGain();
+
+  oscillator.type = 'sine';
+  oscillator.frequency.setValueAtTime(freq, ctx.currentTime);
+
+  gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+
+  oscillator.connect(gainNode);
+  gainNode.connect(ctx.destination);
+
+  oscillator.start(ctx.currentTime);
+  oscillator.stop(ctx.currentTime + duration);
+}
+
+function playDrumSound(type) {
+  const ctx = getAudioContext();
+  const now = ctx.currentTime;
+
+  if (type === 'kick') {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(150, now);
+    osc.frequency.exponentialRampToValueAtTime(0.01, now + 0.5);
+    gain.gain.setValueAtTime(1, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.5);
+  } else if (type === 'snare') {
+    const noise = ctx.createBufferSource();
+    const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    noise.buffer = buffer;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = 1000;
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    noise.start(now);
+  } else if (type === 'hihat') {
+    const noise = ctx.createBufferSource();
+    const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.1, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    noise.buffer = buffer;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = 5000;
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    noise.start(now);
+  } else if (type === 'tom') {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(200, now);
+    osc.frequency.exponentialRampToValueAtTime(100, now + 0.2);
+    gain.gain.setValueAtTime(0.5, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.3);
+  }
+}
+
+function playChord(notes) {
+  notes.forEach((note, i) => {
+    setTimeout(() => playNote(note, 1.5), i * 50);
+  });
+}
 
 // State management
 const state = {
@@ -27,25 +141,13 @@ const state = {
   progress: JSON.parse(localStorage.getItem('musicProgress') || '{}'),
   timerInterval: null,
   timerSeconds: 0,
-  timerRunning: false
+  timerRunning: false,
+  highlightedKeys: [],
+  highlightedDrums: []
 };
 
 function saveProgress() {
   localStorage.setItem('musicProgress', JSON.stringify(state.progress));
-}
-
-function getTotalCompleted(instrument = null) {
-  if (instrument) {
-    const instrumentLessons = Object.values(lessons[instrument]).flat();
-    return instrumentLessons.filter(l => state.progress[l.id]).length;
-  }
-  return Object.values(state.progress).filter(Boolean).length;
-}
-
-function getLevelProgress(instrument, level) {
-  const levelLessons = lessons[instrument][level] || [];
-  const completed = levelLessons.filter(l => state.progress[l.id]).length;
-  return { completed, total: levelLessons.length, percentage: Math.round((completed / levelLessons.length) * 100) || 0 };
 }
 
 function getInstrumentProgress(instrumentId) {
@@ -72,17 +174,11 @@ function renderApp() {
 
 // ============ INSTRUMENT SELECT ============
 function renderInstrumentSelect() {
-  const gradientClasses = {
-    piano: 'cyan',
-    guitar: 'orange',
-    violin: 'purple',
-    drums: 'teal'
-  };
+  const gradientClasses = { piano: 'cyan', guitar: 'orange', violin: 'purple', drums: 'teal' };
 
   return `
     <div class="select-screen">
       <div class="select-container">
-        <!-- Header -->
         <div class="select-header">
           <div class="brand">
             ${icons.music}
@@ -91,12 +187,10 @@ function renderInstrumentSelect() {
           <p class="tagline">Master your musical journey with interactive 3D lessons</p>
         </div>
         
-        <!-- Instrument Grid -->
         <div class="instrument-grid">
           ${Object.values(instruments).map((inst, i) => `
             <div class="instrument-card animate-fade-in animate-fade-in-delay-${i + 1}" data-instrument="${inst.id}">
               <div class="instrument-3d-preview" id="preview-${inst.id}"></div>
-              
               <div class="instrument-card-content">
                 <div>
                   <div class="instrument-title-row">
@@ -105,18 +199,10 @@ function renderInstrumentSelect() {
                   </div>
                   <p class="instrument-description">${inst.description}</p>
                 </div>
-                
                 <div class="instrument-stats">
-                  <div class="stat-row">
-                    ${icons.trendingUp}
-                    <span>${inst.marketShare}</span>
-                  </div>
-                  <div class="stat-row">
-                    ${icons.star}
-                    <span>${inst.accessibility}</span>
-                  </div>
+                  <div class="stat-row">${icons.trendingUp}<span>${inst.marketShare}</span></div>
+                  <div class="stat-row">${icons.star}<span>${inst.accessibility}</span></div>
                 </div>
-                
                 <div class="progress-section">
                   <div class="progress-header">
                     <span class="progress-label">Progress</span>
@@ -127,29 +213,18 @@ function renderInstrumentSelect() {
                   </div>
                 </div>
               </div>
-              
               <div class="instrument-card-overlay" style="background: ${inst.color}"></div>
             </div>
           `).join('')}
         </div>
         
-        <!-- Footer Stats -->
         <div class="select-footer">
           <div class="footer-stats">
-            <div class="footer-stat">
-              <div class="footer-stat-value">8+</div>
-              <div class="footer-stat-label">Lessons per instrument</div>
-            </div>
+            <div class="footer-stat"><div class="footer-stat-value">8+</div><div class="footer-stat-label">Lessons per instrument</div></div>
             <div class="footer-divider"></div>
-            <div class="footer-stat">
-              <div class="footer-stat-value">4</div>
-              <div class="footer-stat-label">Skill levels</div>
-            </div>
+            <div class="footer-stat"><div class="footer-stat-value">4</div><div class="footer-stat-label">Skill levels</div></div>
             <div class="footer-divider"></div>
-            <div class="footer-stat">
-              <div class="footer-stat-value">3D</div>
-              <div class="footer-stat-label">Interactive models</div>
-            </div>
+            <div class="footer-stat"><div class="footer-stat-value">3D</div><div class="footer-stat-label">Interactive models</div></div>
           </div>
         </div>
       </div>
@@ -162,7 +237,6 @@ function renderLessonsPage() {
   const inst = instruments[state.currentInstrument];
   const allLessons = Object.values(lessons[state.currentInstrument]).flat();
   const completedCount = allLessons.filter(l => state.progress[l.id]).length;
-
   const levelConfig = {
     beginner: { emoji: '🌱', color: 'beginner' },
     intermediate: { emoji: '📈', color: 'intermediate' },
@@ -173,13 +247,8 @@ function renderLessonsPage() {
   return `
     <div class="lesson-screen">
       <div class="lesson-container">
-        <!-- Back Button -->
-        <button class="back-button" id="back-to-select">
-          ${icons.arrowLeft}
-          Back to instruments
-        </button>
+        <button class="back-button" id="back-to-select">${icons.arrowLeft} Back to instruments</button>
         
-        <!-- Header -->
         <div class="lesson-header animate-fade-in">
           <span class="lesson-header-icon">${inst.icon}</span>
           <div class="lesson-header-text">
@@ -188,7 +257,6 @@ function renderLessonsPage() {
           </div>
         </div>
         
-        <!-- Progress Summary -->
         <div class="progress-summary animate-fade-in animate-fade-in-delay-1">
           ${icons.award}
           <div class="progress-summary-text">
@@ -201,11 +269,9 @@ function renderLessonsPage() {
           </div>
         </div>
         
-        <!-- Lessons by Level -->
         ${['beginner', 'intermediate', 'advanced', 'expert'].map((level, levelIndex) => {
     const levelLessons = lessons[state.currentInstrument][level] || [];
     if (levelLessons.length === 0) return '';
-
     return `
             <div class="skill-section animate-fade-in animate-fade-in-delay-${Math.min(levelIndex + 2, 4)}">
               <h2>${level.charAt(0).toUpperCase() + level.slice(1)}</h2>
@@ -213,27 +279,19 @@ function renderLessonsPage() {
                 ${levelLessons.map(lesson => {
       const isCompleted = state.progress[lesson.id];
       const config = levelConfig[level];
-
       return `
                     <div class="lesson-card" data-lesson-id="${lesson.id}">
                       <div class="lesson-card-body">
                         ${isCompleted ? icons.checkCircle : icons.circle}
-                        
                         <div class="lesson-card-content">
                           <div class="lesson-level-badge">
                             <span class="lesson-level-emoji">${config.emoji}</span>
                             <span class="lesson-level-text ${config.color}">${level.charAt(0).toUpperCase() + level.slice(1)}</span>
                           </div>
-                          
                           <h4 class="lesson-card-title">${lesson.title}</h4>
                           <p class="lesson-card-description">${lesson.description}</p>
-                          
-                          <div class="lesson-duration">
-                            ${icons.clock}
-                            <span>${lesson.duration} minutes</span>
-                          </div>
+                          <div class="lesson-duration">${icons.clock}<span>${lesson.duration} minutes</span></div>
                         </div>
-                        
                         ${icons.chevronRight}
                       </div>
                     </div>
@@ -253,31 +311,25 @@ function renderLessonDetail() {
   const lesson = state.currentLesson;
   const inst = instruments[state.currentInstrument];
   const isCompleted = state.progress[lesson.id];
+  const content = lesson.content;
 
-  // Generate objectives from content
-  const objectives = lesson.content.sections.map(s => s.title);
-  if (lesson.content.tips) objectives.push('Apply pro tips');
+  // Get interactive elements based on instrument
+  const interactiveElements = getInteractiveElements(lesson);
 
   return `
     <div class="detail-screen">
       <div class="detail-container">
-        <!-- Back Button -->
-        <button class="back-button" id="back-to-lessons">
-          ${icons.arrowLeft}
-          Back to lessons
-        </button>
+        <button class="back-button" id="back-to-lessons">${icons.arrowLeft} Back to lessons</button>
         
         <div class="detail-grid">
-          <!-- Left Column - 3D Model -->
+          <!-- Left Column - 3D + Timer -->
           <div class="animate-fade-in">
             <div class="model-container" id="model-3d"></div>
             
-            <!-- Timer -->
+            ${interactiveElements}
+            
             <div class="timer-section">
-              <div class="timer-header">
-                ${icons.timer}
-                <span>Practice Timer</span>
-              </div>
+              <div class="timer-header">${icons.timer}<span>Practice Timer</span></div>
               <div class="timer-display" id="timer-display">00:00</div>
               <div class="timer-controls">
                 <button class="timer-btn primary" id="timer-start">▶ Start</button>
@@ -288,7 +340,7 @@ function renderLessonDetail() {
           
           <!-- Right Column - Content -->
           <div class="animate-fade-in animate-fade-in-delay-1">
-            <!-- Lesson Header -->
+            <!-- Header -->
             <div class="content-card">
               <div class="content-card-header">
                 <span class="content-card-header-icon">${inst.icon}</span>
@@ -300,37 +352,43 @@ function renderLessonDetail() {
                   <p class="content-card-description">${lesson.description}</p>
                 </div>
               </div>
-              
               <div class="content-card-badges">
-                <div class="content-badge">
-                  <span>Duration: </span>
-                  <span class="text-white">${lesson.duration}</span>
-                </div>
-                <div class="content-badge">
-                  <span class="text-white" style="text-transform: capitalize;">${Object.keys(lessons[state.currentInstrument]).find(level =>
-    lessons[state.currentInstrument][level]?.some(l => l.id === lesson.id)
-  )}</span>
-                </div>
+                <div class="content-badge"><span>Duration: </span><span class="text-white">${lesson.duration}</span></div>
+                <div class="content-badge"><span class="text-white" style="text-transform: capitalize;">${getLessonLevel(lesson.id)}</span></div>
               </div>
             </div>
             
-            <!-- Learning Objectives -->
-            <div class="content-card">
-              <div class="objectives-header">
-                ${icons.target}
-                <h2>Learning Objectives</h2>
+            <!-- Intro -->
+            <div class="content-card intro-card">
+              <div class="intro-header">
+                ${icons.book}
+                <h2>Introduction</h2>
               </div>
-              <ul class="objectives-list">
-                ${objectives.map((obj, i) => `
-                  <li class="objective-item">
-                    <div class="objective-number">${i + 1}</div>
-                    <span class="objective-text">${obj}</span>
-                  </li>
-                `).join('')}
-              </ul>
+              <p class="intro-text">${content.intro}</p>
             </div>
             
-            <!-- Complete Button or Completed State -->
+            <!-- Sections -->
+            ${content.sections.map((section, i) => `
+              <div class="content-card section-card animate-fade-in" style="animation-delay: ${0.2 + i * 0.1}s;">
+                <h3 class="section-title">${section.title}</h3>
+                <p class="section-text">${section.text}</p>
+              </div>
+            `).join('')}
+            
+            <!-- Tips -->
+            ${content.tips && content.tips.length > 0 ? `
+              <div class="content-card tips-card">
+                <div class="tips-header">
+                  ${icons.lightbulb}
+                  <h2>Pro Tips</h2>
+                </div>
+                <ul class="tips-list">
+                  ${content.tips.map(tip => `<li class="tip-item">💡 ${tip}</li>`).join('')}
+                </ul>
+              </div>
+            ` : ''}
+            
+            <!-- Complete Button -->
             ${isCompleted ? `
               <div class="completed-message">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -353,14 +411,97 @@ function renderLessonDetail() {
   `;
 }
 
+function getLessonLevel(lessonId) {
+  for (const level of ['beginner', 'intermediate', 'advanced', 'expert']) {
+    if (lessons[state.currentInstrument][level]?.some(l => l.id === lessonId)) {
+      return level;
+    }
+  }
+  return 'beginner';
+}
+
+function getInteractiveElements(lesson) {
+  const inst = state.currentInstrument;
+
+  if (inst === 'piano' && lesson.keys && lesson.keys.length > 0) {
+    state.highlightedKeys = lesson.keys;
+    return `
+      <div class="interactive-section">
+        <div class="interactive-header">
+          ${icons.volume}
+          <span>Click keys to hear notes: <strong>${lesson.keys.join(', ')}</strong></span>
+        </div>
+        <div class="piano-keys" id="piano-keys">
+          ${['C', 'D', 'E', 'F', 'G', 'A', 'B'].map(note => `
+            <button class="piano-key ${lesson.keys.includes(note) ? 'highlighted' : ''}" data-note="${note}">
+              ${note}
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  if (inst === 'guitar' && lesson.chords && lesson.chords.length > 0) {
+    return `
+      <div class="interactive-section">
+        <div class="interactive-header">
+          ${icons.volume}
+          <span>Click chords to hear: <strong>${lesson.chords.join(', ')}</strong></span>
+        </div>
+        <div class="chord-buttons" id="chord-buttons">
+          ${lesson.chords.map(chord => `
+            <button class="chord-btn" data-chord="${chord}">${chord}</button>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  if (inst === 'drums' && lesson.drums && lesson.drums.length > 0) {
+    state.highlightedDrums = lesson.drums;
+    return `
+      <div class="interactive-section">
+        <div class="interactive-header">
+          ${icons.volume}
+          <span>Click to play: <strong>${lesson.drums.join(', ')}</strong></span>
+        </div>
+        <div class="drum-pads" id="drum-pads">
+          ${['kick', 'snare', 'hihat', 'tom'].map(drum => `
+            <button class="drum-pad ${lesson.drums.includes(drum) ? 'highlighted' : ''}" data-drum="${drum}">
+              ${drum.charAt(0).toUpperCase() + drum.slice(1)}
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  if (inst === 'violin' && lesson.strings && lesson.strings.length > 0) {
+    return `
+      <div class="interactive-section">
+        <div class="interactive-header">
+          ${icons.volume}
+          <span>Strings used: <strong>${lesson.strings.join(', ')}</strong></span>
+        </div>
+        <div class="string-buttons" id="string-buttons">
+          ${['G', 'D', 'A', 'E'].map(string => `
+            <button class="string-btn ${lesson.strings.includes(string) ? 'highlighted' : ''}" data-string="${string}">
+              ${string} String
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  return '';
+}
+
 // ============ INITIALIZATION ============
 function initInstrumentSelect() {
-  // Initialize 3D previews
-  Object.keys(instruments).forEach(id => {
-    init3DPreview(id);
-  });
+  Object.keys(instruments).forEach(id => init3DPreview(id));
 
-  // Card click handlers
   document.querySelectorAll('.instrument-card').forEach(card => {
     card.addEventListener('click', () => {
       state.currentInstrument = card.dataset.instrument;
@@ -394,6 +535,7 @@ function initLessonPage() {
     state.currentLesson = null;
     clearInterval(state.timerInterval);
     state.timerRunning = false;
+    state.timerSeconds = 0;
     renderApp();
   });
 
@@ -405,6 +547,71 @@ function initLessonPage() {
 
   initTimer();
   init3DModel();
+  initInteractiveElements();
+}
+
+function initInteractiveElements() {
+  // Piano keys
+  document.querySelectorAll('.piano-key').forEach(key => {
+    key.addEventListener('click', () => {
+      const note = key.dataset.note;
+      playNote(note);
+      key.classList.add('playing');
+      setTimeout(() => key.classList.remove('playing'), 200);
+    });
+  });
+
+  // Guitar chords
+  document.querySelectorAll('.chord-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const chord = btn.dataset.chord;
+      const chordNotes = getChordNotes(chord);
+      playChord(chordNotes);
+      btn.classList.add('playing');
+      setTimeout(() => btn.classList.remove('playing'), 500);
+    });
+  });
+
+  // Drum pads
+  document.querySelectorAll('.drum-pad').forEach(pad => {
+    pad.addEventListener('click', () => {
+      const drum = pad.dataset.drum;
+      playDrumSound(drum);
+      pad.classList.add('playing');
+      setTimeout(() => pad.classList.remove('playing'), 150);
+    });
+  });
+
+  // Violin strings
+  document.querySelectorAll('.string-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const string = btn.dataset.string;
+      const freq = { 'G': 196, 'D': 293.66, 'A': 440, 'E': 659.25 };
+      const ctx = getAudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.value = freq[string];
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 1);
+      btn.classList.add('playing');
+      setTimeout(() => btn.classList.remove('playing'), 300);
+    });
+  });
+}
+
+function getChordNotes(chord) {
+  const chords = {
+    'C': ['C', 'E', 'G'], 'G': ['G', 'B', 'D'], 'D': ['D', 'F#', 'A'],
+    'E': ['E', 'G#', 'B'], 'A': ['A', 'C#', 'E'], 'F': ['F', 'A', 'C'],
+    'Em': ['E', 'G', 'B'], 'Am': ['A', 'C', 'E'], 'Dm': ['D', 'F', 'A'],
+    'Bm': ['B', 'D', 'F#']
+  };
+  return chords[chord] || ['C', 'E', 'G'];
 }
 
 function initTimer() {
@@ -535,11 +742,15 @@ function createPiano3D(group, detailed = false) {
   const blackKeyGeo = new THREE.BoxGeometry(0.14, 0.8, 0.12);
   const whiteMat = new THREE.MeshStandardMaterial({ color: 0xfafafa, roughness: 0.3 });
   const blackMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.4 });
+  const highlightMat = new THREE.MeshStandardMaterial({ color: 0x22d3ee, roughness: 0.3, emissive: 0x22d3ee, emissiveIntensity: 0.3 });
 
   const keyCount = detailed ? 14 : 7;
+  const noteNames = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 
   for (let i = 0; i < keyCount; i++) {
-    const white = new THREE.Mesh(whiteKeyGeo, whiteMat);
+    const noteName = noteNames[i % 7];
+    const isHighlighted = detailed && state.highlightedKeys.includes(noteName);
+    const white = new THREE.Mesh(whiteKeyGeo, isHighlighted ? highlightMat : whiteMat);
     white.position.x = (i - keyCount / 2) * 0.24;
     group.add(white);
   }
@@ -617,21 +828,23 @@ function createViolin3D(group, detailed = false) {
 
 function createDrums3D(group, detailed = false) {
   const snareMat = new THREE.MeshStandardMaterial({ color: 0xc0c0c0, metalness: 0.7 });
+  const highlightMat = new THREE.MeshStandardMaterial({ color: 0x22d3ee, metalness: 0.7, emissive: 0x22d3ee, emissiveIntensity: 0.2 });
+
   const snareGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.25, 32);
-  const snare = new THREE.Mesh(snareGeo, snareMat);
+  const snare = new THREE.Mesh(snareGeo, state.highlightedDrums.includes('snare') ? highlightMat : snareMat);
   snare.position.set(0, 0, 0.5);
   group.add(snare);
 
   const kickMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.8 });
   const kickGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.5, 32);
-  const kick = new THREE.Mesh(kickGeo, kickMat);
+  const kick = new THREE.Mesh(kickGeo, state.highlightedDrums.includes('kick') ? highlightMat : kickMat);
   kick.rotation.x = Math.PI / 2;
   kick.position.set(0, -0.5, 1.2);
   group.add(kick);
 
   const hihatMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.9 });
   const hihatGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.02, 32);
-  const hihat1 = new THREE.Mesh(hihatGeo, hihatMat);
+  const hihat1 = new THREE.Mesh(hihatGeo, state.highlightedDrums.includes('hihat') ? highlightMat : hihatMat);
   hihat1.position.set(-1, 0.3, 0);
   group.add(hihat1);
   const hihat2 = hihat1.clone();
@@ -641,7 +854,7 @@ function createDrums3D(group, detailed = false) {
   if (detailed) {
     const tomMat = new THREE.MeshStandardMaterial({ color: 0x4a4a4a, roughness: 0.7 });
     const tom1Geo = new THREE.CylinderGeometry(0.3, 0.3, 0.25, 32);
-    const tom1 = new THREE.Mesh(tom1Geo, tomMat);
+    const tom1 = new THREE.Mesh(tom1Geo, state.highlightedDrums.includes('tom') ? highlightMat : tomMat);
     tom1.position.set(-0.5, 0.6, 0.8);
     tom1.rotation.x = -0.3;
     group.add(tom1);

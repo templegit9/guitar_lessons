@@ -544,6 +544,7 @@ function renderExerciseSection(lesson) {
       </div>
       
       <div class="exercise-controls">
+        <button class="exercise-btn sample-btn" id="play-sample">🔊 Play Sample</button>
         <button class="exercise-btn start-btn" id="start-exercise">▶ Start Exercise</button>
         <button class="exercise-btn reset-btn" id="reset-exercise">↺ Reset</button>
       </div>
@@ -724,6 +725,63 @@ function initExercise() {
 
   // Reset button
   document.getElementById('reset-exercise')?.addEventListener('click', resetExercise);
+
+  // Play Sample button
+  document.getElementById('play-sample')?.addEventListener('click', playSample);
+}
+
+function playSample() {
+  const lesson = state.currentLesson;
+  const ex = lesson.exercise;
+  const inst = state.currentInstrument;
+  const sequence = ex.sequence || [];
+
+  const sampleBtn = document.getElementById('play-sample');
+  if (sampleBtn) {
+    sampleBtn.textContent = '🔊 Playing...';
+    sampleBtn.disabled = true;
+  }
+
+  // Play each note in sequence with visual highlight
+  sequence.forEach((item, i) => {
+    setTimeout(() => {
+      // Visual highlight
+      const seqItem = document.querySelector(`.sequence-item[data-index="${i}"]`);
+      if (seqItem) {
+        seqItem.classList.add('demo');
+        setTimeout(() => seqItem.classList.remove('demo'), 400);
+      }
+
+      // Play sound
+      if (inst === 'piano') playNote(item, 0.4);
+      else if (inst === 'guitar') playChord(getChordNotes(item));
+      else if (inst === 'drums') playDrumSound(item);
+      else if (inst === 'violin') {
+        const freq = { 'G': 196, 'D': 293.66, 'A': 440, 'E': 659.25 };
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.value = freq[item] || 440;
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.4);
+      }
+
+      // Re-enable button after last note
+      if (i === sequence.length - 1) {
+        setTimeout(() => {
+          if (sampleBtn) {
+            sampleBtn.textContent = '🔊 Play Sample';
+            sampleBtn.disabled = false;
+          }
+        }, 500);
+      }
+    }, i * 500);
+  });
 }
 
 function startExercise() {

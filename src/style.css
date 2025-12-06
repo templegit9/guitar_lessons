@@ -1269,6 +1269,13 @@ body {
   animation: shake 0.3s ease;
 }
 
+.sequence-item.demo {
+  border-color: var(--color-violet-400);
+  background: rgba(139, 92, 246, 0.4);
+  transform: scale(1.15);
+  box-shadow: 0 0 25px rgba(139, 92, 246, 0.6);
+}
+
 @keyframes shake {
 
   0%,
@@ -1504,6 +1511,21 @@ body {
   cursor: pointer;
   border: none;
   transition: all 0.15s ease;
+}
+
+.sample-btn {
+  background: linear-gradient(to right, var(--color-violet-500), var(--color-purple-400));
+  color: white;
+}
+
+.sample-btn:hover:not(:disabled) {
+  transform: scale(1.02);
+  box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
+}
+
+.sample-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .start-btn {

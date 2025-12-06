@@ -1,0 +1,18 @@
+{
+    "name": "GuitarMaster - Interactive Guitar Lessons",
+    "short_name": "GuitarMaster",
+    "description": "Learn guitar from beginner to expert with interactive lessons, 3D visualizations, and progress tracking",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0f0f1a",
+    "theme_color": "#1a1a2e",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/guitar-icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        }
+    ]
+}

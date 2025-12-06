@@ -757,7 +757,18 @@ function playSample() {
       else if (inst === 'guitar') playChord(getChordNotes(item));
       else if (inst === 'drums') playDrumSound(item);
       else if (inst === 'violin') {
-        const freq = { 'G': 196, 'D': 293.66, 'A': 440, 'E': 659.25 };
+        const freq = {
+          // Open strings
+          'G': 196, 'D': 293.66, 'A': 440, 'E': 659.25,
+          // G String fingers
+          'A3': 220, 'B3': 246.94, 'C4': 261.63, 'D4': 293.66,
+          // D String fingers
+          'E4': 329.63, 'F#4': 369.99, 'G4': 392.00, 'A4': 440,
+          // A String fingers
+          'B': 493.88, 'C#': 554.37, 'D5': 587.33, 'E5': 659.25,
+          // E String fingers
+          'F#': 739.99, 'G#': 830.61, 'A5': 880, 'B5': 987.77
+        };
         const ctx = getAudioContext();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();

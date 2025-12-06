@@ -62,6 +62,7 @@ export const levelMeta = {
 
 // Song data for exercises
 export const songs = {
+    // Beginner Songs
     'mary-had-a-lamb': {
         name: 'Mary Had a Little Lamb',
         bpm: 100,
@@ -73,26 +74,15 @@ export const songs = {
             { note: 'E', beat: 13 }, { note: 'G', beat: 14 }, { note: 'G', beat: 15 }
         ]
     },
-    'ode-to-joy': {
-        name: 'Ode to Joy',
-        bpm: 90,
-        instrument: 'piano',
+    'twinkle-violin': {
+        name: 'Twinkle Twinkle (Violin)',
+        bpm: 80,
+        instrument: 'violin',
         notes: [
-            { note: 'E', beat: 1 }, { note: 'E', beat: 2 }, { note: 'F', beat: 3 }, { note: 'G', beat: 4 },
-            { note: 'G', beat: 5 }, { note: 'F', beat: 6 }, { note: 'E', beat: 7 }, { note: 'D', beat: 8 },
-            { note: 'C', beat: 9 }, { note: 'C', beat: 10 }, { note: 'D', beat: 11 }, { note: 'E', beat: 12 },
-            { note: 'E', beat: 13 }, { note: 'D', beat: 14.5 }, { note: 'D', beat: 16 }
-        ]
-    },
-    'knockin-on-heaven': {
-        name: "Knockin' on Heaven's Door",
-        bpm: 70,
-        instrument: 'guitar',
-        chords: [
-            { chord: 'G', beat: 1 }, { chord: 'D', beat: 5 },
-            { chord: 'Am', beat: 9 }, { chord: 'Am', beat: 13 },
-            { chord: 'G', beat: 17 }, { chord: 'D', beat: 21 },
-            { chord: 'C', beat: 25 }, { chord: 'C', beat: 29 }
+            { string: 'A', beat: 1 }, { string: 'A', beat: 2 },
+            { string: 'E', beat: 3 }, { string: 'E', beat: 4 },
+            { string: 'E', beat: 5 }, { string: 'E', beat: 6 },
+            { string: 'E', beat: 7 }, { string: 'E', beat: 8 }
         ]
     },
     'basic-rock-beat': {
@@ -110,15 +100,158 @@ export const songs = {
             { drum: 'hihat', beat: 4.5 }
         ]
     },
-    'twinkle-violin': {
-        name: 'Twinkle Twinkle (Violin)',
-        bpm: 80,
+
+    // Intermediate Songs
+    'ode-to-joy': {
+        name: 'Ode to Joy',
+        bpm: 90,
+        instrument: 'piano',
+        notes: [
+            { note: 'E', beat: 1 }, { note: 'E', beat: 2 }, { note: 'F', beat: 3 }, { note: 'G', beat: 4 },
+            { note: 'G', beat: 5 }, { note: 'F', beat: 6 }, { note: 'E', beat: 7 }, { note: 'D', beat: 8 },
+            { note: 'C', beat: 9 }, { note: 'C', beat: 10 }, { note: 'D', beat: 11 }, { note: 'E', beat: 12 },
+            { note: 'E', beat: 13 }, { note: 'D', beat: 14.5 }, { note: 'D', beat: 16 }
+        ]
+    },
+    'canon-in-d': {
+        name: 'Canon in D',
+        bpm: 70,
+        instrument: 'piano',
+        notes: [
+            { note: 'D', beat: 1 }, { note: 'A', beat: 3 }, { note: 'B', beat: 5 }, { note: 'F#', beat: 7 },
+            { note: 'G', beat: 9 }, { note: 'D', beat: 11 }, { note: 'G', beat: 13 }, { note: 'A', beat: 15 }
+        ]
+    },
+    'knockin-on-heaven': {
+        name: "Knockin' on Heaven's Door",
+        bpm: 70,
+        instrument: 'guitar',
+        chords: [
+            { chord: 'G', beat: 1 }, { chord: 'D', beat: 5 },
+            { chord: 'Am', beat: 9 }, { chord: 'Am', beat: 13 },
+            { chord: 'G', beat: 17 }, { chord: 'D', beat: 21 },
+            { chord: 'C', beat: 25 }, { chord: 'C', beat: 29 }
+        ]
+    },
+    'wonderwall': {
+        name: "Wonderwall",
+        bpm: 85,
+        instrument: 'guitar',
+        chords: [
+            { chord: 'Em', beat: 1 }, { chord: 'G', beat: 3 },
+            { chord: 'D', beat: 5 }, { chord: 'A', beat: 7 }
+        ]
+    },
+    'billie-jean': {
+        name: 'Billie Jean Beat',
+        bpm: 117,
+        instrument: 'drums',
+        pattern: [
+            { drum: 'kick', beat: 1 }, { drum: 'hihat', beat: 1 }, { drum: 'hihat', beat: 1.5 },
+            { drum: 'snare', beat: 2 }, { drum: 'hihat', beat: 2 }, { drum: 'hihat', beat: 2.5 },
+            { drum: 'kick', beat: 3 }, { drum: 'hihat', beat: 3 }, { drum: 'hihat', beat: 3.5 },
+            { drum: 'snare', beat: 4 }, { drum: 'hihat', beat: 4 }, { drum: 'hihat', beat: 4.5 }
+        ]
+    },
+    'minuet-in-g': {
+        name: 'Minuet in G',
+        bpm: 100,
         instrument: 'violin',
         notes: [
-            { string: 'A', beat: 1 }, { string: 'A', beat: 2 },
-            { string: 'E', beat: 3 }, { string: 'E', beat: 4 },
-            { string: 'E', beat: 5 }, { string: 'E', beat: 6 },
-            { string: 'E', beat: 7 }, { string: 'E', beat: 8 }
+            { string: 'D', beat: 1 }, { string: 'G', beat: 2 }, { string: 'A', beat: 3 },
+            { string: 'B', beat: 4 }, { string: 'C', beat: 5 }
+        ]
+    },
+
+    // Advanced/Expert Songs
+    'fur-elise': {
+        name: 'Fur Elise',
+        bpm: 100, // Slightly simplified
+        instrument: 'piano',
+        notes: [
+            { note: 'E', beat: 1 }, { note: 'D#', beat: 1.5 }, { note: 'E', beat: 2 },
+            { note: 'D#', beat: 2.5 }, { note: 'E', beat: 3 }, { note: 'B', beat: 3.5 },
+            { note: 'D', beat: 4 }, { note: 'C', beat: 4.5 }, { note: 'A', beat: 5 }
+        ]
+    },
+    'moonlight-sonata': {
+        name: 'Moonlight Sonata',
+        bpm: 60,
+        instrument: 'piano',
+        notes: [
+            { note: 'C#', beat: 1 }, { note: 'G#', beat: 1.33 }, { note: 'C#', beat: 1.66 },
+            { note: 'C#', beat: 2 }, { note: 'G#', beat: 2.33 }, { note: 'C#', beat: 2.66 }
+        ]
+    },
+    'stairway-to-heaven': {
+        name: 'Stairway to Heaven',
+        bpm: 72,
+        instrument: 'guitar',
+        chords: [
+            { chord: 'Am', beat: 1 }, { chord: 'G', beat: 3 },
+            { chord: 'C', beat: 5 }, { chord: 'D', beat: 6 },
+            { chord: 'F', beat: 7 }, { chord: 'G', beat: 8 }, { chord: 'Am', beat: 9 }
+        ]
+    },
+    'hotel-california': {
+        name: 'Hotel California',
+        bpm: 75,
+        instrument: 'guitar',
+        chords: [
+            { chord: 'Bm', beat: 1 }, { chord: 'F#', beat: 5 },
+            { chord: 'A', beat: 9 }, { chord: 'E', beat: 13 },
+            { chord: 'G', beat: 17 }, { chord: 'D', beat: 21 },
+            { chord: 'Em', beat: 25 }, { chord: 'F#', beat: 29 }
+        ]
+    },
+    'take-five': {
+        name: 'Take Five (5/4)',
+        bpm: 100,
+        instrument: 'drums',
+        pattern: [
+            { drum: 'kick', beat: 1 }, { drum: 'hihat', beat: 1 },
+            { drum: 'snare', beat: 2 }, { drum: 'hihat', beat: 2.5 },
+            { drum: 'kick', beat: 3 }, { drum: 'snare', beat: 4 },
+            { drum: 'hihat', beat: 5 }
+        ]
+    },
+    'rosanna': {
+        name: 'Rosanna Shuffle',
+        bpm: 90,
+        instrument: 'drums',
+        pattern: [
+            { drum: 'kick', beat: 1 }, { drum: 'hihat', beat: 1 },
+            { drum: 'hihat', beat: 1.67 }, { drum: 'snare', beat: 2 },
+            { drum: 'hihat', beat: 2.5 }, { drum: 'snare', beat: 4 }
+        ]
+    },
+    'bach-partita': {
+        name: 'Partita No. 3',
+        bpm: 110,
+        instrument: 'violin',
+        notes: [
+            { string: 'E', beat: 1 }, { string: 'E', beat: 1.25 }, { string: 'E', beat: 1.5 },
+            { string: 'E', beat: 1.75 }, { string: 'F#', beat: 2 }, { string: 'G#', beat: 2.25 },
+            { string: 'A', beat: 2.5 }, { string: 'B', beat: 2.75 }
+        ]
+    },
+    'spring-vivaldi': {
+        name: 'Spring (Vivaldi)',
+        bpm: 100,
+        instrument: 'violin',
+        notes: [
+            { string: 'E', beat: 1 }, { string: 'G#', beat: 2 }, { string: 'G#', beat: 2.5 },
+            { string: 'G#', beat: 3 }, { string: 'F#', beat: 3.5 }, { string: 'E', beat: 4 },
+            { string: 'B', beat: 5 }
+        ]
+    },
+    'paganini-24': {
+        name: 'Caprice No. 24',
+        bpm: 130,
+        instrument: 'violin',
+        notes: [
+            { string: 'A', beat: 1 }, { string: 'C', beat: 1.5 }, { string: 'B', beat: 2 },
+            { string: 'E', beat: 2.5 }, { string: 'D', beat: 3 }
         ]
     }
 };
